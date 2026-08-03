@@ -1,0 +1,31 @@
+import { PrismaClient } from "@prisma/client";
+import argon2 from "argon2";
+import { signAccessToken, signRefreshToken } from "../utils/jwt";
+
+const prisma = new PrismaClient();
+
+export class InvalidCredentialsError extends Error {}
+
+export async function login(username: string, password: string) {
+    const user = await prisma.user.findUnique({ where: { username } });
+
+    if(!user || !user.isActive) {
+        throw new InvalidCredentialsError();
+    }
+
+    const isPasswordValid = await argon2.verify(user.passwordHashed, password);
+    if (!isPasswordValid) {
+        throw new InvalidCredentialsError();
+    }
+
+    const payload = { userId: user.id, role: user.role };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    return {
+        accessToken,
+        refreshToken,
+        expiresIn: 900,
+        user: { id: user.id, username: user.username, fullName: user.fullName, role: user.role },
+    }
+}

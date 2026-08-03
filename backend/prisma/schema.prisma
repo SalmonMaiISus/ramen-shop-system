@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  chef
+  staff
+}
+
+enum TableStatus {
+  available
+  occupied
+}
+
+enum SessionStatus {
+  open
+  all_served
+  bill_requested
+  paid
+  closed
+}
+
+enum SelectionType {
+  single
+  multiple
+}
+
+enum OrderItemStatus {
+  pending
+  cooking
+  serving
+  served
+  cancelled_unnotified
+  cancelled_notified
+}
+
+enum BillStatus {
+  waiting
+  coming
+  paid
+}
+
+enum PaymentMethod {
+  cash
+  qr_promptpay
+  credit_card
+}
+
+
+
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique @db.VarChar(64)
+  passwordHashed String @map("password_hashed") @db.VarChar(255)
+  fullName String @map("full_name") @db.VarChar(255)
+  role UserRole
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  notifiedOrderItems OrderItem[] @relation("NotifiedBy")
+  handledBills Bill[] @relation("HandledBy")
+
+  @@map("users")
+}
+
+model Table {
+  id Int @id @default(autoincrement())
+  tableNumber String @unique @map("table_number") @db.VarChar(10)
+  qrCodeToken String @unique @map("qr_code_token") @db.VarChar(100)
+  status TableStatus @default(available)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sessions TableSession[]
+
+  @@map("tables")
+}
+
+model TableSession {
+  id Int @id @default(autoincrement())
+  tableId Int @map("table_id")
+  sessionToken String @unique @map("session_token") @db.VarChar(100)
+  status SessionStatus @default(open)
+  openedAt DateTime @default(now()) @map("opened_at")
+  closedAt DateTime? @map("closed_at")
+
+  table Table @relation(fields: [tableId], references: [id])
+  orderItems OrderItem[]
+  bills Bill[]
+
+  @@index([tableId])
+  @@index([status])
+  @@map("table_sessions")
+}
+
+model MenuCategory {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(50)
+  displayOrder Int @default(0) @map("display_order")
+
+  menuItems MenuItem[]
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id Int @id @default(autoincrement())
+  categoryId Int @map("category_id")
+  name String @db.VarChar(100)
+  description String?
+  basePrice Decimal @map("base_price") @db.Decimal(10, 2)
+  imageUrl String? @map("image_url") @db.VarChar(255)
+  isAvailable Boolean @default(true) @map("is_available")
+  isHidden Boolean @default(false) @map("is_hidden")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  category MenuCategory @relation(fields: [categoryId], references: [id])
+  optionGroups OptionGroup[]
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@map("menu_items")
+}
+
+model OptionGroup {
+  id Int @id @default(autoincrement())
+  menuItemId Int @map("menu_item_id")
+  name String @db.VarChar(100)
+  selectionType SelectionType @map("selection_type")
+  isRequired Boolean @default(false) @map("is_required")
+  displayOrder Int @default(0) @map("display_order")
+
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  options Option[]
+
+  @@index([menuItemId])
+  @@map("option_groups")
+}
+
+model Option {
+  id Int @id @default(autoincrement())
+  optionGroupId Int @map("option_group_id")
+  name String @db.VarChar(100)
+  extraPrice Decimal @default(0) @map("extra_price") @db.Decimal(10, 2)
+  displayOrder Int @default(0) @map("display_order")
+
+  optionGroup OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  orderItemOptions OrderItemOption[]
+
+  @@index([optionGroupId])
+  @@map("options")
+}
+
+model OrderItem {
+  id Int @id @default(autoincrement())
+  sessionId Int @map("session_id")
+  menuItemId Int @map("menu_item_id")
+  billId Int? @map("bill_id")
+  menuItemNameSnapshot String @map("menu_item_name_snapshot") @db.VarChar(100)
+  unitPriceSnapshot Decimal @map("unit_price_snapshot") @db.Decimal(10, 2)
+  quantity Int @default(1)
+  status OrderItemStatus @default(pending)
+  cancelReason String? @map("cancel_reason") @db.VarChar(255)
+  specialNotes String? @map("special_notes")
+  queuePosition Int? @map("queue_position")
+  createdAt DateTime @default(now()) @map("created_at")
+  cookingStartedAt DateTime? @map("cooking_started_at")
+  servedAt DateTime? @map("served_at")
+  cancelledAt DateTime? @map("cancelled_at")
+  notifiedBy Int? @map("notified_by")
+  notifiedAt DateTime? @map("notified_at")
+
+  session TableSession @relation(fields: [sessionId], references: [id])
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+  bill Bill? @relation(fields: [billId], references: [id])
+  notifiedByUser User? @relation("NotifiedBy", fields: [notifiedBy], references: [id])
+  selectedOptions OrderItemOption[]
+
+  @@index([sessionId])
+  @@index([status])
+  @@index([menuItemId])
+  @@index([billId])
+  @@map("order_items")
+}
+
+model OrderItemOption {
+  id Int @id @default(autoincrement())
+  orderItemId Int @map("order_item_id")
+  optionId Int @map("option_id")
+  optionNameSnapshot String @map("option_name_snapshot") @db.VarChar(100)
+  extraPriceSnapshot Decimal @default(0) @map("extra_price_snapshot") @db.Decimal(10, 2)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  option Option @relation(fields: [optionId], references: [id])
+
+  @@index([orderItemId])
+  @@map("order_item_options")
+}
+
+model Bill {
+  id Int @id @default(autoincrement())
+  sessionId Int @map("session_id")
+  amount Decimal @default(0) @db.Decimal(10, 2)
+  status BillStatus @default(waiting)
+  paymentMethod PaymentMethod? @map("payment_method")
+  handledBy Int? @map("handled_by")
+  requestedAt DateTime @default(now()) @map("requested_at")
+  attendedAt DateTime? @map("attended_at")
+  paidAt DateTime? @map("paid_at")
+
+  session TableSession @relation(fields: [sessionId], references: [id])
+  handledByUser User? @relation("HandledBy", fields: [handledBy], references: [id])
+  orderItems OrderItem[]
+
+  @@index([sessionId])
+  @@index([status])
+  @@map("bills")
+}
