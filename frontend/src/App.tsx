@@ -3,13 +3,17 @@ import { Login } from "./components/Login";
 import { MenuList } from "./components/MenuList";
 import { KitchenQueue } from "./components/KitchenQueue";
 import { StaffDashboard } from "./components/StaffDashboard";
+import { useSession } from "./hooks/useSession";
+import { ScanQr } from "./components/ScanQr";
+import { CustomerOrder } from "./components/CustomerOrder";
 import type { User } from "./types";
 import "./App.css";
 
-type Tab = "menu" | "kitchen" | "staff";
+type Tab = "menu" | "customer" | "kitchen" | "staff";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
+  const { sessionToken, tableNumber, saveSession, clearSession } = useSession();
   const [tab, setTab] = useState<Tab>("menu");
 
   function handleLogout() {
@@ -33,6 +37,9 @@ function App() {
         <button className={tab === "menu" ? "active" : ""} onClick={() => setTab("menu")}>
           เมนู
         </button>
+        <button className={tab === "customer" ? "active" : ""} onClick={() => setTab("customer")}>
+          ลูกค้าจำลอง
+        </button>
         <button className={tab === "kitchen" ? "active" : ""} onClick={() => setTab("kitchen")}>
           ครัว (ต้อง Login)
         </button>
@@ -43,6 +50,11 @@ function App() {
 
       <main className="app-main">
         {tab === "menu" && <MenuList />}
+        {tab === "customer" && (
+          sessionToken && tableNumber
+            ? <CustomerOrder tableNumber={tableNumber} onSessionExpired={clearSession} />
+            : <ScanQr onScanned={saveSession} />
+        )}
         {tab === "kitchen" && (user ? <KitchenQueue /> : <Login onLoginSuccess={setUser} />)}
         {tab === "staff" && (user ? <StaffDashboard /> : <Login onLoginSuccess={setUser} />)}
       </main>

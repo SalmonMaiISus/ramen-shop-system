@@ -4,6 +4,7 @@ import { getAllMenuItems } from "../services/menu.service";
 export async function getMenu(_req: Request, res: Response) {
     try {
         const menuItems = await getAllMenuItems();
+        res.set("Cache-Control", "no-store");
         res.json({ success: true, date: menuItems });
     } catch (error) {
         console.error(error);
