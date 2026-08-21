@@ -27,3 +27,19 @@ export const updateStatusSchema = z.object({
 export const payBillSchema = z.object({
     paymentMethod: z.enum(["cash", "qr_promptpay", "credit_card"]),
 });
+
+export const createMenuItemSchema = z.object({
+    categoryId: z.number().int().positive(),
+    name: z.string().min(1, "Name is required"),
+    description: z.string().optional(),
+    basePrice: z.number().positive("Price must be greater than 0"),
+    imageUrl: z.string().optional(),
+});
+
+export const toggleAvailabilitySchema = z.object({
+    isAvailable: z.boolean(),
+});
+
+export const cancelOrderItemSchema = z.object({
+    reason: z.string().min(1, "Cancellation reason is required"),
+});

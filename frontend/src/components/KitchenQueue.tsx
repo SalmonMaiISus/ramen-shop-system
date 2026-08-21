@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { api } from "../api/client";
+import { socket } from "../socket";
 import type { OrderItem } from "../types";
 
 const NEXT_STATUS: Record<string, string> = {
@@ -19,6 +20,8 @@ export function KitchenQueue() {
     const [items, setItems] = useState<OrderItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [cancellingId, setCancellingId] = useState<number | null>(null);
+    const [reason, setReason] = useState("");
 
     async function loadQueue() {
         try {
@@ -33,6 +36,17 @@ export function KitchenQueue() {
 
     useEffect(() => {
         loadQueue();
+
+        const token = localStorage.getItem("accessToken");
+        if (token) socket.emit("join_chef_dashboard", token);
+
+        socket.on("order_item.created", loadQueue);
+        socket.on("order_item.status_changed", loadQueue);
+
+        return () => {
+            socket.off("order_item.created", loadQueue);
+            socket.off("order_item.staus_changed", loadQueue);
+        }
     }, []);
 
     async function advanceStatus(id: number, currentStatus: string) {
@@ -44,6 +58,18 @@ export function KitchenQueue() {
             loadQueue(); // refresh รายการหลังเปลี่ยนสถานะสำเร็จ
         } catch (err: any) {
             setError(err.response?.data?.error?.message ?? "Update failed");
+        }
+    }
+
+    async function handleCancel(id: number) {
+        if (!reason.trim()) return;
+        try {
+            await api.post(`chef/order-items/${id}/cancel`, { reason });
+            setCancellingId(null);
+            setReason("");
+            loadQueue();
+        } catch (err: any) {
+            setError(err.response?.data?.error?.message ?? "Cancel failed");
         }
     }
 
@@ -67,6 +93,27 @@ export function KitchenQueue() {
                             เปลี่ยนเป็น {STATUS_LABEL[NEXT_STATUS[item.status]]}
                         </button>
                     )}
+                    {cancellingId === item.id ? (
+                        <div style={{ marginTop: 8 }}>
+                            <input
+                            placeholder="เหตุผล เช่น วัตถุดิบหมด"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            style={{ width: "100%", padding: 8, marginBottom: 6 }}
+                            />
+                            <button onClick={() => handleCancel(item.id)}>ยืนยันยกเลิก</button>
+                            <button onClick={() => setCancellingId(null)} style={{ marginTop: 4, background: "var(--muted)" }}>
+                            ยกเลิก
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => setCancellingId(item.id)}
+                            style={{ marginTop: 8, background: "var(--accent)" }}
+                        >
+                            ของหมด (Cancel)
+                        </button>
+                        )}
                 </div>
             ))}
         </div>

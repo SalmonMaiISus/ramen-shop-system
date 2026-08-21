@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { socket } from "../socket";
 import { api } from "../api/client";
 
 interface Bill {
@@ -14,19 +15,29 @@ interface ServingItem {
     session: { table: { tableNumber: string } };
 }
 
+interface CancelledItem {
+    id: number;
+    menuItemNameSnapshot: string;
+    cancelReason: string;
+    session: { table: { tableNumber: string } };
+}
+
 export function StaffDashboard() {
     const [bills, setBills] = useState<Bill[]>([]);
     const [servingItems, setServingItems] = useState<ServingItem[]>([]);
+    const [cancellations, setCancellations] = useState<CancelledItem[]>([]);
     const [error, setError] = useState("");
 
     async function loadData() {
         try {
-            const [billsRes, servingRes] = await Promise.all([
+            const [billsRes, servingRes, cancelRes] = await Promise.all([
                 api.get("/staff/bills"),
                 api.get("/staff/serving-items"),
+                api.get("/staff/cancellations"),
             ]);
             setBills(billsRes.data.data ?? []);
             setServingItems(servingRes.data.data ?? []);
+            setCancellations(cancelRes.data.data ?? []);
         } catch (err: any) {
             setError(err.response?.data?.error?.message ?? "Failed to load data");
         }
@@ -34,6 +45,19 @@ export function StaffDashboard() {
 
     useEffect(() => {
         loadData();
+
+        const token = localStorage.getItem("accessToken");
+        if (token) socket.emit("join_staff_dashboard", token);
+
+        socket.on("order_item.status_changed", loadData);
+        socket.on("order_item.cancelled", loadData);
+        socket.on("bill.requested", loadData);
+
+        return () => {
+            socket.off("order_item.status_changed", loadData);
+            socket.off("order_item.cancelled", loadData);
+            socket.off("bill.requested", loadData);
+        }
     }, []);
 
     async function handleServe(id: number) {
@@ -51,11 +75,31 @@ export function StaffDashboard() {
         loadData();
     }
 
+    async function handleNotify(id: number) {
+        await api.post(`/staff/cancellations/${id}/notify`);
+        loadData();
+    }
+
     if (error) return <p className="error-text">{error}</p>;
 
     return (
         <div>
             <section>
+                <h2>⚠️ แจ้งเตือนลูกค้า (ของหมด)</h2>
+                {cancellations.length === 0 && <p className="muted">ไม่มีรายการที่ต้องแจ้ง</p>}
+                <div className="card-grid">
+                    {cancellations.map((item) => (
+                        <div key={item.id} className="order-card" style={{ borderColor: "var(--accent)" }}>
+                            <span className="table-tag">โต๊ะ {item.session.table.tableNumber}</span>
+                            <h3>{item.menuItemNameSnapshot}</h3>
+                            <p className="muted">เหตุผล: {item.cancelReason}</p>
+                            <button onClick={() => handleNotify(item.id)}>แจ้งลูกค้าแล้ว</button>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <section style={{ marginTop: 32 }}>
                 <h2>รอเสิร์ฟ</h2>
                 {servingItems.length === 0 && <p className="muted">ไม่มีรายการรอเสิร์ฟ</p>}
                 <div className="card-grid">

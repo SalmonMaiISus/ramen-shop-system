@@ -12,3 +12,36 @@ export async function getAllMenuItems() {
         orderBy: { category: { displayOrder: "asc" } },
     });
 }
+
+interface CreateMenuItemInput {
+    categoryId: number;
+    name: string;
+    description?: string;
+    basePrice: number;
+    imageUrl?: string;
+}
+
+export async function createMenuItem(input: CreateMenuItemInput) {
+    return prisma.menuItem.create({
+        data: {
+            categoryId: input.categoryId,
+            name: input.name,
+            description: input.description,
+            basePrice: input.basePrice,
+            imageUrl: input.imageUrl,
+            isAvailable: true,
+            isHidden: false,
+        },
+    });
+}
+
+export async function getAllCategories() {
+    return prisma.menuCategory.findMany({ orderBy: { displayOrder: "asc" } });
+}
+
+export async function toggleMenuItemAvailability(menuItemId: number, isAvailable: boolean) {
+    return prisma.menuItem.update({
+        where: { id: menuItemId },
+        data: { isAvailable },
+    });
+}

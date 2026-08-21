@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { emitNewOrderItem, emitOrderItemStatusChanged, emitOrderItemCancelled, emitOrderItemNotified } from "../sockets";
 
 const prisma = new PrismaClient();
 
@@ -56,6 +57,7 @@ export async function createOrderItems(sessionId: number, items: CreateOrderItem
         results.push(orderItem);
     }
 
+    emitNewOrderItem();
     return results;
 }
 
@@ -85,7 +87,10 @@ const ALLOWED_TRANSITIONS: Record<string, string[]> = {
 }
 
 export async function updateOrderItemStatus(orderItemId: number, newStatus: string) {
-    const orderItem = await prisma.orderItem.findUnique({ where: { id: orderItemId } });
+    const orderItem = await prisma.orderItem.findUnique({ 
+        where: { id: orderItemId },
+        include: { session: true },
+    });
 
     if (!orderItem) {
         throw new OrderItemNotFoundError();
@@ -101,8 +106,83 @@ export async function updateOrderItemStatus(orderItemId: number, newStatus: stri
 
     const timestampField = newStatus === "cooking" ? "cookingStartedAt" : newStatus === "served" ? "servedAt" : null;
 
-    return prisma.orderItem.update({
+    const updated =  await prisma.orderItem.update({
         where: { id: orderItemId },
-        data: { status: newStatus as any, ...(timestampField ? { [timestampField]: new Date() } : {}), },
+        data: { status: newStatus as any, ...(timestampField ? { [timestampField]: new Date() } : {}) },
     });
+
+    emitOrderItemStatusChanged(orderItem.session.sessionToken, orderItemId, newStatus);
+    return updated;
+}
+
+export async function getMyOrderItems(sessionId: number) {
+    return prisma.orderItem.findMany({
+        where: { sessionId },
+        include: { selectedOptions: true},
+        orderBy: { createdAt: "asc" },
+    });
+}
+
+export async function cancelOrderItem(orderItemId: number, reason: string) {
+    const orderItem = await prisma.orderItem.findUnique({ 
+        where: { id: orderItemId },
+        include: { session: true },
+    });
+
+    if (!orderItem) {
+        throw new OrderItemNotFoundError();
+    }
+
+    if (orderItem.status !== "pending" && orderItem.status !== "cooking") {
+        throw new InvalidStatusTransitionError(
+            `Cannot cancel an order item with status ${ orderItem.status }`
+        );
+    }
+
+    const updated = await prisma.orderItem.update({
+        where: { id: orderItemId },
+        data: {
+            status: "cancelled_unnotified",
+            cancelReason: reason,
+            cancelledAt: new Date(),
+        },
+    });
+
+    emitOrderItemCancelled(orderItem.session.sessionToken, orderItemId, reason);
+    return updated;
+}
+
+export async function getUnnotifiedCancellations() {
+    return prisma.orderItem.findMany({
+        where: { status: "cancelled_unnotified" },
+        include: { session: { include: { table: true } } },
+        orderBy: { cancelledAt: "asc" },
+    });
+}
+
+export async function markCancellationNotified(orderItemId: number, staffUserId: number) {
+    const orderItem = await prisma.orderItem.findUnique({ 
+        where: { id: orderItemId },
+        include: { session: true },
+    });
+
+    if (!orderItem) {
+        throw new OrderItemNotFoundError();
+    }
+
+    if (orderItem.status !== "cancelled_unnotified") {
+        throw new InvalidStatusTransitionError("This item is not pending notification");
+    }
+
+    const updated = await prisma.orderItem.update({
+        where: { id: orderItemId },
+        data: {
+            status: "cancelled_notified",
+            notifiedBy: staffUserId,
+            notifiedAt: new Date(),
+        },
+    });
+
+    emitOrderItemNotified(orderItem.session.sessionToken, orderItem);
+    return updated;
 }

@@ -6,6 +6,8 @@ import {
     markBillPaidController,
     getServingItemsController,
     markServedController,
+    getUnnotifiedCancellationsController,
+    markCancellationNotifiedController,
 } from "../controllers/bill.controller";
 
 const router = Router();
@@ -18,5 +20,8 @@ router.post("/bills/:id/pay", markBillPaidController);
 
 router.get("/serving-items", getServingItemsController);
 router.post("/serving-items/:id/served", markServedController);
+
+router.get("/cancellations", getUnnotifiedCancellationsController);
+router.post("/cancellations/:id/notify", markCancellationNotifiedController);
 
 export default router;

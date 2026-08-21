@@ -6,10 +6,11 @@ import { StaffDashboard } from "./components/StaffDashboard";
 import { useSession } from "./hooks/useSession";
 import { ScanQr } from "./components/ScanQr";
 import { CustomerOrder } from "./components/CustomerOrder";
+import { AdminMenu } from "./components/AdminMenu";
 import type { User } from "./types";
 import "./App.css";
 
-type Tab = "menu" | "customer" | "kitchen" | "staff";
+type Tab = "menu" | "customer" | "kitchen" | "staff" | "admin";
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -46,17 +47,21 @@ function App() {
         <button className={tab === "staff" ? "active" : ""} onClick={() => setTab("staff")}>
           พนักงาน (ต้อง Login)
         </button>
+        <button className={tab === "admin" ? "active" : ""} onClick={() => setTab("admin")}>
+          แอดมิน (ต้อง Login)
+        </button>
       </nav>
 
       <main className="app-main">
         {tab === "menu" && <MenuList />}
         {tab === "customer" && (
           sessionToken && tableNumber
-            ? <CustomerOrder tableNumber={tableNumber} onSessionExpired={clearSession} />
+            ? <CustomerOrder tableNumber={tableNumber} sessionToken={sessionToken} onSessionExpired={clearSession} />
             : <ScanQr onScanned={saveSession} />
         )}
         {tab === "kitchen" && (user ? <KitchenQueue /> : <Login onLoginSuccess={setUser} />)}
         {tab === "staff" && (user ? <StaffDashboard /> : <Login onLoginSuccess={setUser} />)}
+        {tab === "admin" && (user ? <AdminMenu /> : <Login onLoginSuccess={setUser} />)}
       </main>
     </div>
   );
