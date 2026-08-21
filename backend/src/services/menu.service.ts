@@ -16,9 +16,9 @@ export async function getAllMenuItems() {
 interface CreateMenuItemInput {
     categoryId: number;
     name: string;
-    description?: string;
+    description?: string | undefined;
     basePrice: number;
-    imageUrl?: string;
+    imageUrl?: string | undefined;
 }
 
 export async function createMenuItem(input: CreateMenuItemInput) {
@@ -26,9 +26,9 @@ export async function createMenuItem(input: CreateMenuItemInput) {
         data: {
             categoryId: input.categoryId,
             name: input.name,
-            description: input.description,
+            ...(input.description !== undefined ? { description: input.description } : {}),
             basePrice: input.basePrice,
-            imageUrl: input.imageUrl,
+            ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
             isAvailable: true,
             isHidden: false,
         },

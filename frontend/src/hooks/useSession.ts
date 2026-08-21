@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function useSession() {
     const [sessionToken, setSessionToken] = useState<string | null>(localStorage.getItem("sessionToken"));

@@ -10,7 +10,7 @@ interface CreateOrderItemInput {
     menuItemId: number;
     quantity: number;
     selectedOptionIds: number[];
-    specialNotes?: string;
+    specialNotes?: string | undefined;
 }
 
 export async function createOrderItems(sessionId: number, items: CreateOrderItemInput[]) {
@@ -41,7 +41,7 @@ export async function createOrderItems(sessionId: number, items: CreateOrderItem
                 menuItemNameSnapshot: menuItem.name,
                 unitPriceSnapshot: menuItem.basePrice,
                 quantity: item.quantity,
-                specialNotes: item.specialNotes,
+                ...(item.specialNotes !== undefined ? { specialNotes: item.specialNotes } : {}),
                 status: "pending",
                 selectedOptions: {
                     create: selectedOptions.map((opt) => ({
@@ -183,6 +183,6 @@ export async function markCancellationNotified(orderItemId: number, staffUserId:
         },
     });
 
-    emitOrderItemNotified(orderItem.session.sessionToken, orderItem);
+    emitOrderItemNotified(orderItem.session.sessionToken, orderItem.id);
     return updated;
 }

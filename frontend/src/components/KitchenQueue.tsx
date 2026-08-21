@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import { socket } from "../socket";
 import type { OrderItem } from "../types";
@@ -45,7 +45,7 @@ export function KitchenQueue() {
 
         return () => {
             socket.off("order_item.created", loadQueue);
-            socket.off("order_item.staus_changed", loadQueue);
+            socket.off("order_item.status_changed", loadQueue);
         }
     }, []);
 

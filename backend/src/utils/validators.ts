@@ -43,3 +43,14 @@ export const toggleAvailabilitySchema = z.object({
 export const cancelOrderItemSchema = z.object({
     reason: z.string().min(1, "Cancellation reason is required"),
 });
+
+export const createTableSchema = z.object({
+    tableNumber: z.string().min(1, "Table number is required"),
+});
+
+export const createUserSchema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    fullName: z.string().min(1, "Full name is required"),
+    role: z.enum(["chef", "staff", "admin"]),
+});
