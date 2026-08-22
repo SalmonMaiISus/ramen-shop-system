@@ -54,3 +54,7 @@ export const createUserSchema = z.object({
     fullName: z.string().min(1, "Full name is required"),
     role: z.enum(["chef", "staff", "admin"]),
 });
+
+export const createSplitBillSchema = z.object({
+    orderItemIds: z.array(z.number().int().positive()).min(1, "Select at least one item"),
+})

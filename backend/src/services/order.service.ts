@@ -148,6 +148,14 @@ export async function cancelOrderItem(orderItemId: number, reason: string) {
         },
     });
 
+    // If reason is out of stock then auto close
+    if (reason.includes("หมด") || reason.toLowerCase().includes("out of stock")) {
+        await prisma.menuItem.update({
+            where: { id: orderItem.menuItemId },
+            data: { isAvailable: false },
+        });
+    }
+
     emitOrderItemCancelled(orderItem.session.sessionToken, orderItemId, reason);
     return updated;
 }
@@ -185,4 +193,11 @@ export async function markCancellationNotified(orderItemId: number, staffUserId:
 
     emitOrderItemNotified(orderItem.session.sessionToken, orderItem.id);
     return updated;
+}
+
+export async function updateQueuePosition(orderItemId: number, newPosition: number) {
+    return prisma.orderItem.update({
+        where: { id: orderItemId },
+        data: { queuePosition: newPosition },
+    })
 }

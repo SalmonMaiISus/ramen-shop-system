@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createTable, getAllTables, deleteTable, TableNumberTakenError } from "../services/table.service";
+import { createTable, getAllTables, deleteTable, TableNumberTakenError, getActiveSessions } from "../services/table.service";
 import { createTableSchema } from "../utils/validators";
 
 export async function createTableController(req: Request, res: Response) {
@@ -41,4 +41,9 @@ export async function deleteTableController(req: Request, res: Response) {
             error: { code: "INTERNAL_ERROR", message: "Cannot delete table (may have active sessions)" },
         });
     }
+}
+
+export async function getActiveSessionsController(_req: Request, res: Response) {
+    const sessions = await getActiveSessions();
+    res.json({ success: true, data: sessions });
 }

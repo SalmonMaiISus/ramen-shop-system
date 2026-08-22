@@ -19,8 +19,9 @@ export function Login({ onLoginSuccess }: LoginProps) {
 
         try {
             const res = await api.post("/auth/login", { username, password });
-            const { accessToken, user } = res.data.data;
+            const { accessToken, refreshToken, user } = res.data.data;
             localStorage.setItem("accessToken", accessToken);
+            localStorage.setItem("refreshToken", refreshToken);
             onLoginSuccess(user);
         } catch (err: any) {
             setError(err.response?.data?.error?.message ?? "Login failed");

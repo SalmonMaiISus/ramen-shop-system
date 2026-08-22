@@ -26,3 +26,11 @@ export async function getAllTables() {
 export async function deleteTable(tableId: number) {
     await prisma.table.delete({ where: { id: tableId } });
 }
+
+export async function getActiveSessions() {
+    return prisma.tableSession.findMany({
+        where: { status: { not: "closed"} },
+        include: { table: true },
+        orderBy: { openedAt: "asc" },
+    })
+}

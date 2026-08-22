@@ -21,7 +21,7 @@ export function KitchenQueue() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [cancellingId, setCancellingId] = useState<number | null>(null);
-    const [reason, setReason] = useState("");
+    const [reason, setReason] = useState("วัตถุดิบหมด");
 
     async function loadQueue() {
         try {
@@ -73,6 +73,19 @@ export function KitchenQueue() {
         }
     }
 
+    async function moveQueue(id: number, direction: "up" | "down") {
+        const index = items.findIndex((i) => i.id === id);
+        const targetIndex = direction === "up" ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= items.length) return;
+
+        const currentItem = items[index];
+        const targetItem = items[targetIndex];
+
+        await api.patch(`/chef/order-items/${currentItem.id}/queue-position`, { queuePosition: targetIndex });
+        await api.patch(`/chef/order-items/${targetItem.id}/queue-position`, { queuePosition: index });
+        loadQueue();
+    }
+
     if (loading) return <p className="muted">กำลังโหลดคิว...</p>;
     if (error) return <p className="error-text">{error}</p>;
     if (items.length === 0) return <p className="muted">ไม่มีออเดอร์ในคิว</p>;
@@ -88,6 +101,10 @@ export function KitchenQueue() {
                         </span>
                     </div>
                     <h3>{item.menuItemNameSnapshot}</h3>
+                    <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+                        <button onClick={() => moveQueue(item.id, "up")} style={{ flex: 1 }}>↑</button>
+                        <button onClick={() => moveQueue(item.id, "down")} style={{ flex: 1 }}>↓</button>
+                    </div>
                     {NEXT_STATUS[item.status] && (
                         <button onClick={() => advanceStatus(item.id, item.status)}>
                             เปลี่ยนเป็น {STATUS_LABEL[NEXT_STATUS[item.status]]}
@@ -95,12 +112,15 @@ export function KitchenQueue() {
                     )}
                     {cancellingId === item.id ? (
                         <div style={{ marginTop: 8 }}>
-                            <input
-                            placeholder="เหตุผล เช่น วัตถุดิบหมด"
-                            value={reason}
-                            onChange={(e) => setReason(e.target.value)}
-                            style={{ width: "100%", padding: 8, marginBottom: 6 }}
-                            />
+                            <select
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                style={{ width: "100%", padding: 8, marginBottom: 6 }}
+                            >
+                                <option value="วัตถุดิบหมด">วัตถุดิบหมด</option>
+                                <option value="ทำไม่ทัน">ทำไม่ทัน</option>
+                                <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
                             <button onClick={() => handleCancel(item.id)}>ยืนยันยกเลิก</button>
                             <button onClick={() => setCancellingId(null)} style={{ marginTop: 4, background: "var(--muted)" }}>
                             ยกเลิก
@@ -119,3 +139,4 @@ export function KitchenQueue() {
         </div>
     );
 }
+

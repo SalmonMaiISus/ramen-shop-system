@@ -22,22 +22,30 @@ interface CancelledItem {
     session: { table: { tableNumber: string } };
 }
 
+interface SessionData {
+    id: number;
+    table: { tableNumber: string };
+}
+
 export function StaffDashboard() {
     const [bills, setBills] = useState<Bill[]>([]);
     const [servingItems, setServingItems] = useState<ServingItem[]>([]);
     const [cancellations, setCancellations] = useState<CancelledItem[]>([]);
+    const [sessions, setSessions] = useState<SessionData[]>([]);
     const [error, setError] = useState("");
 
     async function loadData() {
         try {
-            const [billsRes, servingRes, cancelRes] = await Promise.all([
+            const [billsRes, servingRes, cancelRes, sessionRes] = await Promise.all([
                 api.get("/staff/bills"),
                 api.get("/staff/serving-items"),
                 api.get("/staff/cancellations"),
+                api.get("/staff/sessions"),
             ]);
             setBills(billsRes.data.data ?? []);
             setServingItems(servingRes.data.data ?? []);
             setCancellations(cancelRes.data.data ?? []);
+            setSessions(sessionRes.data.data ?? []);
         } catch (err: any) {
             setError(err.response?.data?.error?.message ?? "Failed to load data");
         }
@@ -70,13 +78,19 @@ export function StaffDashboard() {
         loadData();
     }
 
-    async function handlePay(id: number) {
-        await api.post(`/staff/bills/${id}/pay`, { paymentMethod: "cash" });
+    async function handlePay(id: number, paymentMethod: string) {
+        await api.post(`/staff/bills/${id}/pay`, { paymentMethod });
         loadData();
     }
 
     async function handleNotify(id: number) {
         await api.post(`/staff/cancellations/${id}/notify`);
+        loadData();
+    }
+
+    async function handleForceClose(sessionId: number) {
+        if (!confirm("ยืนยันปิดโต๊ะนี้? (ใช้เมื่อลูกค้าออกไปแล้วโดยไม่ได้เช็คบิลผ่านระบบ)")) return;
+        await api.post(`/staff/sessions/${sessionId}/force-close`);
         loadData();
     }
 
@@ -125,8 +139,37 @@ export function StaffDashboard() {
                                 <button onClick={() => handleBillComing(bill.id)}>กำลังไป</button>
                             )}
                             {bill.status === "coming" && (
-                                <button onClick={() => handlePay(bill.id)}>รับเงินแล้ว (เงินสด)</button>
+                                <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                                    <select id={`pay-method-${bill.id}`} style={{ flex: 1, padding: 8 }}>
+                                        <option value="cash">เงินสด</option>
+                                        <option value="qr_promptpay">พร้อมเพย์</option>
+                                        <option value="credit_card">บัตรเครดิต</option>
+                                    </select>
+                                    <button
+                                        onClick={() => {
+                                            const select = document.getElementById(`pay-method-${bill.id}`) as HTMLSelectElement;
+                                            handlePay(bill.id, select.value);
+                                        }}
+                                    >
+                                    รับเงินแล้ว
+                                    </button>
+                                </div>
                             )}
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            <section style={{ marginTop: 32 }}>
+                <h2>โต๊ะที่มีลูกค้าอยู่</h2>
+                {sessions.length === 0 && <p className="muted">ไม่มีโต๊ะที่ใช้งานอยู่</p>}
+                <div className="card-grid">
+                    {sessions.map((s) => (
+                        <div key={s.id} className="order-card">
+                            <h3>โต๊ะ {s.table.tableNumber}</h3>
+                            <button onClick={() => handleForceClose(s.id)} style={{ background: "var(--muted)" }}>
+                                ปิดโต๊ะ (Manual)
+                            </button>
                         </div>
                     ))}
                 </div>

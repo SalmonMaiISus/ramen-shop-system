@@ -9,6 +9,7 @@ import {
     OrderItemNotFoundError,
     InvalidStatusTransitionError,
     cancelOrderItem,
+    updateQueuePosition,
 } from "../services/order.service";
 import { updateStatusSchema, cancelOrderItemSchema } from "../utils/validators";
 
@@ -141,4 +142,11 @@ export async function cancelOrderItemController(req: Request, res: Response) {
             error: { code: "INTERNAL_ERROR", message: "Something went wrong" },
         });
     }
+}
+
+export async function updateQueuePositionController(req: Request, res: Response) {
+    const orderItemId = Number(req.params.id);
+    const { queuePosition } = req.body;
+    const updated = await updateQueuePosition(orderItemId, Number(queuePosition));
+    res.json({ success: true, data: updated });
 }

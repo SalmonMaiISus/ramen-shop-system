@@ -20,3 +20,7 @@ export function signRefreshToken(payload: JwtPayLoad): string {
 export function verifyAccessToken(token: string): JwtPayLoad {
     return jwt.verify(token, process.env.JWT_ACCESS_SECRET as string) as JwtPayLoad;
 }
+
+export function verifyRefreshToken(token: string): JwtPayLoad {
+    return jwt.verify(token, process.env.JWT_REFRESH_SECRET as string) as JwtPayLoad;
+}
