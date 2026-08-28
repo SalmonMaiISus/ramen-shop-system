@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import { createUser, getAllUsers, toggleUserActive, UsernameTakenError } from "../services/user.service";
-import { createUserSchema } from "../utils/validators";
-import { z } from "zod";
+import { createUser, getAllUsers, toggleUserActive, UsernameTakenError, updateUser } from "../services/user.service";
+import { createUserSchema, updateUserSchema } from "../utils/validators";
+import { success, z } from "zod";
 
 const toggleActiveSchema = z.object({ isActive: z.boolean() });
 
@@ -44,5 +44,19 @@ export async function toggleUserActiveController(req: Request, res: Response) {
 
     const userId = Number(req.params.id);
     const user = await toggleUserActive(userId, parsed.data.isActive);
+    res.json({ success: true, data: user });
+}
+
+export async function updateUserController(req: Request, res: Response) {
+    const parsed = updateUserSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(422).json({
+            success: false,
+            error: { code: "VALIDATION_ERROR", message: "Invalid user data" },
+        });
+    }
+
+    const userId = Number(req.params.id);
+    const user = await updateUser(userId, parsed.data);
     res.json({ success: true, data: user });
 }

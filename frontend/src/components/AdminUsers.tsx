@@ -16,6 +16,9 @@ export function AdminUsers() {
     const [fullName, setFullName] = useState("");
     const [role, setRole] = useState("staff");
     const [message, setMessage] = useState("");
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editFullName, setEditFullName] = useState("");
+    const [editRole, setEditRole] = useState("staff");
 
     async function loadUsers() {
         const res = await api.get("/admin/users");
@@ -42,6 +45,18 @@ export function AdminUsers() {
 
     async function toggleActive(id: number, current: boolean) {
         await api.patch(`/admin/users/${id}/active`, { isActive: !current });
+        loadUsers();
+    }
+
+    function startEdit(u: UserData) {
+        setEditingId(u.id);
+        setEditFullName(u.fullName);
+        setEditRole(u.role);
+    }
+
+    async function saveEdit(id: number) {
+        await api.patch(`/admin/users/${id}`, { fullName: editFullName, role: editRole });
+        setEditingId(null);
         loadUsers();
     }
 
@@ -76,12 +91,38 @@ export function AdminUsers() {
             <div className="card-grid" style={{ marginTop: 24 }}>
                 {users.map((u) => (
                     <div key={u.id} className="menu-card">
-                        <span className="category-tag">{u.role}</span>
-                        <h3>{u.fullName}</h3>
-                        <p className="muted">@{u.username}</p>
-                        <button onClick={() => toggleActive(u.id, u.isActive)}>
-                            {u.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
-                        </button>
+                        {editingId === u.id ? (
+                            <>
+                                <input
+                                    value={editFullName}
+                                    onChange={(e) => setEditFullName(e.target.value)}
+                                    style={{ width: "100%", padding: 8, marginBottom: 8 }}
+                                />
+                                <select
+                                    value={editRole}
+                                    onChange={(e) => setEditRole(e.target.value)}
+                                    style={{ width: "100%", padding: 8, marginBottom: 8 }}
+                                >
+                                    <option value="chef">Chef</option>
+                                    <option value="staff">Staff</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <button onClick={() => saveEdit(u.id)}>บันทึก</button>
+                                <button onClick={() => setEditingId(null)} style={{ marginTop: 4, background: "var(--muted)" }}>
+                                    ยกเลิก
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <span className="category-tag">{u.role}</span>
+                                <h3>{u.fullName}</h3>
+                                <p className="muted">@{u.username}</p>
+                                <button onClick={() => startEdit(u)}>แก้ไข</button>
+                                <button onClick={() => toggleActive(u.id, u.isActive)} style={{ marginTop: 4 }}>
+                                    {u.isActive ? "ปิดใช้งาน" : "เปิดใช้งาน"}
+                                </button>
+                            </>
+                        )}
                     </div>
                 ))}
             </div>

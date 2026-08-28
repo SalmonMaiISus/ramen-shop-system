@@ -12,3 +12,6 @@ router.post("/order-items/:id/cancel", cancelOrderItemController);
 router.patch("/order-items/:id/queue-position", updateQueuePositionController);
 
 export default router;
+
+// Account: Chef
+// Password: Abcd1234

@@ -37,7 +37,9 @@ function App() {
   }, []);
 
   function handleLogout() {
+    api.post("/auth/logout").catch(() => {});
     localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     setUser(null);
   }
 

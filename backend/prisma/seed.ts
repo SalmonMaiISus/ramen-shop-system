@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
     console.log("🌱 Seeding database...");
 
-    // ---------- Admin User ----------
+    // Admin User
     const passwordHashed = await argon2.hash("password123");
     await prisma.user.upsert({
         where: { username: "admin" },
@@ -19,12 +19,12 @@ async function main() {
         },
     });
 
-    // ---------- Menu Categories ----------
+    // Menu categories
     const ramenCategory = await prisma.menuCategory.create({
         data: { name: "ราเมง", displayOrder: 1 },
     });
 
-     // ---------- Menu Item: ราเมงหมูชาชู (พร้อม Option Group) ----------
+     // Menu Items
     const shoyuRamen = await prisma.menuItem.create({
         data: {
             categoryId: ramenCategory.id,
@@ -49,7 +49,7 @@ async function main() {
         },
     });
 
-    // ---------- Sample Table ----------
+    // Sample Table
     await prisma.table.create({
         data: { tableNumber: "A1", qrCodeToken: "qr-token-a1-sample" },
     });

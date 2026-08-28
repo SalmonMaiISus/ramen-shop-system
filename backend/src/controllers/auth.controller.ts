@@ -56,3 +56,7 @@ export async function refreshController(req: Request, res: Response) {
         res.status(500).json({ success: false, error: { code: "INTERNAL_ERROR", message: "Error" } });
     }
 }
+
+export async function logoutController(_req: Request, res: Response) {
+    res.json({ success: true, data: null });
+}

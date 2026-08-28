@@ -1,5 +1,13 @@
 import { Request, Response } from "express";
-import { createTable, getAllTables, deleteTable, TableNumberTakenError, getActiveSessions } from "../services/table.service";
+import { 
+    createTable, 
+    getAllTables,
+    deleteTable, 
+    TableNumberTakenError, 
+    getActiveSessions,
+    updateTableNumber,
+    regenerateQrCode,
+} from "../services/table.service";
 import { createTableSchema } from "../utils/validators";
 
 export async function createTableController(req: Request, res: Response) {
@@ -46,4 +54,34 @@ export async function deleteTableController(req: Request, res: Response) {
 export async function getActiveSessionsController(_req: Request, res: Response) {
     const sessions = await getActiveSessions();
     res.json({ success: true, data: sessions });
+}
+
+export async function updateTableController(req: Request, res: Response) {
+    const parsed = createTableSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(422).json({
+            success: false,
+            error: { code: "VALIDATION_ERROR", message: "Table number is required" },
+        });
+    }
+
+    const tableId = Number(req.params.id);
+    try {
+        const table = await updateTableNumber(tableId, parsed.data.tableNumber);
+        res.json({ success: true, data: table });
+    } catch (error) {
+        if (error instanceof TableNumberTakenError) {
+            return res.status(409).json({
+                success: false,
+                error: { code: "TABLE_NUMBER_TAKEN", message: "This table number already exists" },
+            });
+        }
+        res.status(500).json({ success: false, error: { code: "INTERNAL_ERROR", message: "Error" } });
+    }
+}
+
+export async function regenerateQrController(req: Request, res: Response) {
+    const tableId = Number(req.params.id);
+    const table = await regenerateQrCode(tableId);
+    res.json({ success: true, data: table });
 }

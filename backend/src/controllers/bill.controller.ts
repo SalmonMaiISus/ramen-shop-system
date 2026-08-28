@@ -16,6 +16,7 @@ import {
     forceCloseSession,
     NoUnassignedItemsError,
     SessionNotFoundError,
+    getMyBill,
 } from "../services/bill.service";
 import { 
     getUnnotifiedCancellations, 
@@ -182,4 +183,9 @@ export async function forceCloseSessionController(req: AuthRequest, res: Respons
         }
         res.status(500).json({ success: false, error: { code: "INTERNAL_ERROR", message: "Error" } });
     }
+}
+
+export async function getMyBillController(req: SessionRequest, res: Response) {
+    const bill = await getMyBill(req.session!.id);
+    res.json({ success: true, data: bill });
 }

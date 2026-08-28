@@ -12,6 +12,11 @@ interface CreateUserInput {
     role: "chef" | "staff" | "admin";
 }
 
+interface UpdateUserInput {
+    fullName?: string;
+    role?: "chef" | "staff" | "admin";
+}
+
 export async function createUser(input: CreateUserInput) {
     const existing = await prisma.user.findUnique({ where: { username: input.username } });
     if (existing) {
@@ -45,6 +50,15 @@ export async function toggleUserActive(userId: number, isActive: boolean) {
     const user = await prisma.user.update({
         where: { id: userId },
         data: { isActive },
+        select: { id: true, username: true, fullName: true, role: true, isActive: true },
+    });
+    return user;
+}
+
+export async function updateUser(userId: number, input: UpdateUserInput) {
+    const user = await prisma.user.update({
+        where: { id: userId },
+        data: input,
         select: { id: true, username: true, fullName: true, role: true, isActive: true },
     });
     return user;

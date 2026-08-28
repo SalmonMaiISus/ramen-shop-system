@@ -215,3 +215,10 @@ export async function forceCloseSession(sessionId: number) {
         data: { status: "available" },
     });
 }
+
+export async function getMyBill(sessionId: number) {
+    return prisma.bill.findFirst({
+        where: { sessionId },
+        orderBy: { requestedAt: "desc" },
+    });
+}

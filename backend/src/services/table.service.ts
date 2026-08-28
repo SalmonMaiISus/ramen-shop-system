@@ -34,3 +34,18 @@ export async function getActiveSessions() {
         orderBy: { openedAt: "asc" },
     })
 }
+
+export async function updateTableNumber(tableId: number, tableNumber: string) {
+    const conflict = await prisma.table.findUnique({ where: { tableNumber } });
+    if (conflict && conflict.id !== tableId) {
+        throw new TableNumberTakenError();
+    }
+    return prisma.table.update({ where: { id: tableId }, data: { tableNumber } });
+}
+
+export async function regenerateQrCode(tableId: number) {
+    return prisma.table.update({
+        where: { id: tableId },
+        data: { qrCodeToken: crypto.randomBytes(16).toString("hex") },
+    });
+}

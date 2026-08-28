@@ -57,4 +57,40 @@ export const createUserSchema = z.object({
 
 export const createSplitBillSchema = z.object({
     orderItemIds: z.array(z.number().int().positive()).min(1, "Select at least one item"),
+});
+
+export const updateMenuItemSchema = z.object({
+    name: z.string().min(1).optional(),
+    description: z.string().optional(),
+    basePrice: z.number().positive().optional(),
+    categoryId: z.number().int().positive().optional(),
+    imageUrl: z.string().optional(),
 })
+
+export const createOptionGroupSchema = z.object({
+    menuItemId: z.number().int().positive(),
+    name: z.string().min(1),
+    selectionType: z.enum(["single", "multiple"]),
+    isRequired: z.boolean().default(false),
+});
+
+export const createOptionSchema = z.object({
+    optionGroupId: z.number().int().positive(),
+    name: z.string().min(1),
+    extraPrice: z.number().min(0).default(0),
+});
+
+export const createCategorySchema = z.object({
+    name: z.string().min(1, "Category name is required"),
+    displayOrder: z.number().int().optional(),
+});
+
+export const updateCategorySchema = z.object({
+    name: z.string().min(1).optional(),
+    displayOrder: z.number().int().optional(),
+});
+
+export const updateUserSchema = z.object({
+    fullName: z.string().min(1).optional(),
+    role: z.enum(["chef", "staff", "admin"]).optional(),
+});

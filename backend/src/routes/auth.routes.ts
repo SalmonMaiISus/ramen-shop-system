@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { loginController, refreshController } from "../controllers/auth.controller";
+import { loginController, refreshController, logoutController } from "../controllers/auth.controller";
 import { requireAuth, AuthRequest } from "../middlewares/auth.middleware";
 import { getUserById } from "../services/auth.service";
-import { Response } from "express";
 
 const router = Router();
 
 router.post("/login", loginController);
 router.post("/refresh", refreshController);
+router.post("/logout", logoutController);
 
 router.get("/me", requireAuth, async (req: AuthRequest, res) => {
     const user = await getUserById(req.user!.userId);
