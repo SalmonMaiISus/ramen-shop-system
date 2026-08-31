@@ -3,6 +3,7 @@ import { api } from "../api/client";
 import type { MenuItem } from "../types";
 import { socket } from "../socket";
 import { OrderOptionsModal } from "./OrderOptionsModal";
+import { card, cardGrid, categoryTag, priceClass, mutedClass, statusTagClass, btnDark, loginCard } from "../ui";
 
 interface CustomerOrderProps {
     tableNumber: string;
@@ -85,10 +86,9 @@ export function CustomerOrder({ tableNumber, onSessionExpired, sessionToken }: C
             loadMyOrders();
             setSelectingItem(null);
         } catch (err: any) {
-            const errorMessage = err.response?.data?.error?.message ?? "สั่งอาหารไม่สำเร็จ"
+            const errorMessage = err.response?.data?.error?.message ?? "สั่งอาหารไม่สำเร็จ";
             setMessage(errorMessage);
-
-            if(err.response?.status == 401) {
+            if (err.response?.status === 401) {
                 setTimeout(() => onSessionExpired(), 2000);
             }
         }
@@ -105,11 +105,8 @@ export function CustomerOrder({ tableNumber, onSessionExpired, sessionToken }: C
         } catch (err: any) {
             const errorMessage = err.response?.data?.error?.message ?? "เรียกเก็บเงินไม่สำเร็จ";
             setMessage(errorMessage);
-
-             if (err.response?.status === 401) {
-                setTimeout(() => {
-                    onSessionExpired();
-                }, 2000);
+            if (err.response?.status === 401) {
+                setTimeout(() => onSessionExpired(), 2000);
             }
         } finally {
             setIsRequestingBill(false);
@@ -118,55 +115,52 @@ export function CustomerOrder({ tableNumber, onSessionExpired, sessionToken }: C
 
     return (
         <div>
-            <h2 color="black">โต๊ะ {tableNumber}</h2>
-            {message && <p className="muted">{message}</p>}
+            <h2 className="text-ink text-xl font-semibold mb-2">โต๊ะ {tableNumber}</h2>
+            {message && <p className={mutedClass}>{message}</p>}
 
-            <div className="card-grid">
+            <div className={cardGrid}>
                 {menu.map((item) => (
-                    <div key={item.id} className="menu-card">
-                        <span className="category-tag">{item.category.name}</span>
-                        <h3>{item.name}</h3>
-                        <p className="price">฿{item.basePrice}</p>
+                    <div key={item.id} className={card}>
+                        <span className={categoryTag}>{item.category.name}</span>
+                        <h3 className="my-2 mb-1 text-lg">{item.name}</h3>
+                        <p className={priceClass}>฿{item.basePrice}</p>
                         <button
-                           disabled={!item.isAvailable}
-                           onClick={() =>
-                               item.optionGroups.length > 0 ? setSelectingItem(item) : handleOrder(item.id)
-                           }
-                       > 
+                            className={btnDark}
+                            disabled={!item.isAvailable}
+                            onClick={() => (item.optionGroups.length > 0 ? setSelectingItem(item) : handleOrder(item.id))}
+                        >
                             {item.isAvailable ? "สั่ง" : "สินค้าหมด"}
                         </button>
                     </div>
                 ))}
             </div>
 
-            <section style={{ marginTop: 32 , color: "black"}}>
-                <h2>ออเดอร์ของฉัน</h2>
-                {myOrders.length === 0 && <p className="muted">ยังไม่มีรายการสั่ง</p>}
-                <div className="card-grid">
+            <section className="mt-8 text-ink">
+                <h2 className="text-lg font-semibold mb-3">ออเดอร์ของฉัน</h2>
+                {myOrders.length === 0 && <p className={mutedClass}>ยังไม่มีรายการสั่ง</p>}
+                <div className={cardGrid}>
                     {myOrders.map((item) => (
-                        <div key={item.id} className="order-card">
-                            <span className={`status-tag status-${item.status}`}>
-                                {STATUS_LABEL[item.status] ?? item.status}
-                            </span>
-                            <h3>{item.menuItemNameSnapshot}</h3>
-                            <p className="price">฿{item.unitPriceSnapshot}</p>
+                        <div key={item.id} className={card}>
+                            <span className={statusTagClass(item.status)}>{STATUS_LABEL[item.status] ?? item.status}</span>
+                            <h3 className="my-2 mb-1 text-lg">{item.menuItemNameSnapshot}</h3>
+                            <p className={priceClass}>฿{item.unitPriceSnapshot}</p>
                         </div>
                     ))}
                 </div>
-            </section >
+            </section>
 
             {myBill ? (
-                <div className="login-card" style={{ marginTop: 24, maxWidth: 300 }}>
-                    <h3 style={{ margin: 0 }}>สถานะบิล</h3>
-                    <p className="price" style={{ fontSize: 24 }}>฿{myBill.amount}</p>
-                    <span className={`status-tag status-${myBill.status === "waiting" ? "pending" : myBill.status === "coming" ? "cooking" : "serving"}`}>
+                <div className={`${loginCard} mt-6`}>
+                    <h3 className="m-0 text-lg font-semibold">สถานะบิล</h3>
+                    <p className={`${priceClass} text-2xl`}>฿{myBill.amount}</p>
+                    <span className={statusTagClass(myBill.status)}>
                         {myBill.status === "waiting" && "รอพนักงาน"}
                         {myBill.status === "coming" && "พนักงานกำลังมา"}
                         {myBill.status === "paid" && "ชำระเงินแล้ว ขอบคุณครับ"}
                     </span>
                 </div>
             ) : (
-                <button style={{ marginTop: 24 }} onClick={handleRequestBill} disabled={isRequestingBill}>
+                <button className={`${btnDark} mt-6 max-w-xs`} onClick={handleRequestBill} disabled={isRequestingBill}>
                     {isRequestingBill ? "กำลังส่ง..." : "เรียกเก็บเงิน"}
                 </button>
             )}
@@ -175,7 +169,7 @@ export function CustomerOrder({ tableNumber, onSessionExpired, sessionToken }: C
                 <OrderOptionsModal
                     menuItem={selectingItem}
                     onCancel={() => setSelectingItem(null)}
-                    onConfirm={(optionsId, notes) => handleOrder(selectingItem.id, optionsId, notes)}
+                    onConfirm={(optionIds, notes) => handleOrder(selectingItem.id, optionIds, notes)}
                 />
             )}
         </div>

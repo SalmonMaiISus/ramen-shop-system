@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { socket } from "../socket";
 import { api } from "../api/client";
+import { socket } from "../socket";
+import { card, cardGrid, mutedClass, errorClass, btnDark, btnMuted, inputClass } from "../ui";
 
 interface Bill {
     id: number;
@@ -36,7 +37,7 @@ export function StaffDashboard() {
 
     async function loadData() {
         try {
-            const [billsRes, servingRes, cancelRes, sessionRes] = await Promise.all([
+            const [billsRes, servingRes, cancelRes, sessionsRes] = await Promise.all([
                 api.get("/staff/bills"),
                 api.get("/staff/serving-items"),
                 api.get("/staff/cancellations"),
@@ -45,7 +46,7 @@ export function StaffDashboard() {
             setBills(billsRes.data.data ?? []);
             setServingItems(servingRes.data.data ?? []);
             setCancellations(cancelRes.data.data ?? []);
-            setSessions(sessionRes.data.data ?? []);
+            setSessions(sessionsRes.data.data ?? []);
         } catch (err: any) {
             setError(err.response?.data?.error?.message ?? "Failed to load data");
         }
@@ -65,7 +66,7 @@ export function StaffDashboard() {
             socket.off("order_item.status_changed", loadData);
             socket.off("order_item.cancelled", loadData);
             socket.off("bill.requested", loadData);
-        }
+        };
     }, []);
 
     async function handleServe(id: number) {
@@ -94,64 +95,71 @@ export function StaffDashboard() {
         loadData();
     }
 
-    if (error) return <p className="error-text">{error}</p>;
+    if (error) return <p className={errorClass}>{error}</p>;
 
     return (
         <div>
             <section>
-                <h2>⚠️ แจ้งเตือนลูกค้า (ของหมด)</h2>
-                {cancellations.length === 0 && <p className="muted">ไม่มีรายการที่ต้องแจ้ง</p>}
-                <div className="card-grid">
+                <h2 className="text-lg font-semibold mb-3">⚠️ แจ้งเตือนลูกค้า (ของหมด)</h2>
+                {cancellations.length === 0 && <p className={mutedClass}>ไม่มีรายการที่ต้องแจ้ง</p>}
+                <div className={cardGrid}>
                     {cancellations.map((item) => (
-                        <div key={item.id} className="order-card" style={{ borderColor: "var(--accent)" }}>
-                            <span className="table-tag">โต๊ะ {item.session.table.tableNumber}</span>
-                            <h3>{item.menuItemNameSnapshot}</h3>
-                            <p className="muted">เหตุผล: {item.cancelReason}</p>
-                            <button onClick={() => handleNotify(item.id)}>แจ้งลูกค้าแล้ว</button>
+                        <div key={item.id} className={`${card} border-accent`}>
+                            <span className="text-xs text-muted bg-cream px-2.5 py-0.5 rounded-full">
+                                โต๊ะ {item.session.table.tableNumber}
+                            </span>
+                            <h3 className="my-2 mb-1 text-lg">{item.menuItemNameSnapshot}</h3>
+                            <p className={mutedClass}>เหตุผล: {item.cancelReason}</p>
+                            <button className={btnDark} onClick={() => handleNotify(item.id)}>แจ้งลูกค้าแล้ว</button>
                         </div>
                     ))}
                 </div>
             </section>
 
-            <section style={{ marginTop: 32 }}>
-                <h2>รอเสิร์ฟ</h2>
-                {servingItems.length === 0 && <p className="muted">ไม่มีรายการรอเสิร์ฟ</p>}
-                <div className="card-grid">
+            <section className="mt-8">
+                <h2 className="text-lg font-semibold mb-3">รอเสิร์ฟ</h2>
+                {servingItems.length === 0 && <p className={mutedClass}>ไม่มีรายการรอเสิร์ฟ</p>}
+                <div className={cardGrid}>
                     {servingItems.map((item) => (
-                        <div key={item.id} className="order-card">
-                            <span className="table-tag">โต๊ะ {item.session.table.tableNumber}</span>
-                            <h3>{item.menuItemNameSnapshot}</h3>
-                            <button onClick={() => handleServe(item.id)}>เสิร์ฟแล้ว</button>
+                        <div key={item.id} className={card}>
+                            <span className="text-xs text-muted bg-cream px-2.5 py-0.5 rounded-full">
+                                โต๊ะ {item.session.table.tableNumber}
+                            </span>
+                            <h3 className="my-2 mb-3 text-lg">{item.menuItemNameSnapshot}</h3>
+                            <button className={btnDark} onClick={() => handleServe(item.id)}>เสิร์ฟแล้ว</button>
                         </div>
                     ))}
                 </div>
             </section>
 
-            <section style={{ marginTop: 32 }}>
-                <h2>คำขอเรียกบิล</h2>
-                {bills.length === 0 && <p className="muted">ไม่มีคำขอเรียกบิล</p>}
-                <div className="card-grid">
+            <section className="mt-8">
+                <h2 className="text-lg font-semibold mb-3">คำขอเรียกบิล</h2>
+                {bills.length === 0 && <p className={mutedClass}>ไม่มีคำขอเรียกบิล</p>}
+                <div className={cardGrid}>
                     {bills.map((bill) => (
-                        <div key={bill.id} className="order-card">
-                            <span className="table-tag">โต๊ะ {bill.session.table.tableNumber}</span>
-                            <h3>฿{bill.amount}</h3>
+                        <div key={bill.id} className={card}>
+                            <span className="text-xs text-muted bg-cream px-2.5 py-0.5 rounded-full">
+                                โต๊ะ {bill.session.table.tableNumber}
+                            </span>
+                            <h3 className="my-2 mb-3 text-lg">฿{bill.amount}</h3>
                             {bill.status === "waiting" && (
-                                <button onClick={() => handleBillComing(bill.id)}>กำลังไป</button>
+                                <button className={btnDark} onClick={() => handleBillComing(bill.id)}>กำลังไป</button>
                             )}
                             {bill.status === "coming" && (
-                                <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                                    <select id={`pay-method-${bill.id}`} style={{ flex: 1, padding: 8 }}>
+                                <div className="flex gap-1.5 mt-2">
+                                    <select id={`pay-method-${bill.id}`} className={`${inputClass} flex-1`}>
                                         <option value="cash">เงินสด</option>
                                         <option value="qr_promptpay">พร้อมเพย์</option>
                                         <option value="credit_card">บัตรเครดิต</option>
                                     </select>
                                     <button
+                                        className="py-2.5 px-4 rounded-lg bg-ink text-white text-sm cursor-pointer whitespace-nowrap"
                                         onClick={() => {
                                             const select = document.getElementById(`pay-method-${bill.id}`) as HTMLSelectElement;
                                             handlePay(bill.id, select.value);
                                         }}
                                     >
-                                    รับเงินแล้ว
+                                        รับเงินแล้ว
                                     </button>
                                 </div>
                             )}
@@ -160,16 +168,14 @@ export function StaffDashboard() {
                 </div>
             </section>
 
-            <section style={{ marginTop: 32 }}>
-                <h2>โต๊ะที่มีลูกค้าอยู่</h2>
-                {sessions.length === 0 && <p className="muted">ไม่มีโต๊ะที่ใช้งานอยู่</p>}
-                <div className="card-grid">
+            <section className="mt-8">
+                <h2 className="text-lg font-semibold mb-3">โต๊ะที่มีลูกค้าอยู่</h2>
+                {sessions.length === 0 && <p className={mutedClass}>ไม่มีโต๊ะที่ใช้งานอยู่</p>}
+                <div className={cardGrid}>
                     {sessions.map((s) => (
-                        <div key={s.id} className="order-card">
-                            <h3>โต๊ะ {s.table.tableNumber}</h3>
-                            <button onClick={() => handleForceClose(s.id)} style={{ background: "var(--muted)" }}>
-                                ปิดโต๊ะ (Manual)
-                            </button>
+                        <div key={s.id} className={card}>
+                            <h3 className="my-0 mb-3 text-lg">โต๊ะ {s.table.tableNumber}</h3>
+                            <button className={btnMuted} onClick={() => handleForceClose(s.id)}>ปิดโต๊ะ (Manual)</button>
                         </div>
                     ))}
                 </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import { card, cardGrid, mutedClass, errorClass, loginCard, labelClass, inputClass, btnAccent, btnDark, btnSuccess, statusTagClass } from "../ui";
 
 interface TableData {
     id: number;
@@ -64,47 +65,41 @@ export function AdminTables() {
 
     return (
         <div>
-            <h2>จัดการโต๊ะ</h2>
-            <form className="login-card" onSubmit={handleCreate}>
-                <label>
+            <h2 className="text-lg font-semibold mb-3">จัดการโต๊ะ</h2>
+            <form className={loginCard} onSubmit={handleCreate}>
+                <label className={labelClass}>
                     เลขโต๊ะใหม่
-                    <input value={newTableNumber} onChange={(e) => setNewTableNumber(e.target.value)} required />
+                    <input className={inputClass} value={newTableNumber} onChange={(e) => setNewTableNumber(e.target.value)} required />
                 </label>
-                {message && <p className="error-text">{message}</p>}
-                <button type="submit">สร้างโต๊ะ + Generate QR</button>
+                {message && <p className={errorClass}>{message}</p>}
+                <button type="submit" className={btnAccent}>สร้างโต๊ะ + Generate QR</button>
             </form>
 
-            <div className="card-grid" style={{ marginTop: 24 }}>
+            <div className={`${cardGrid} mt-6`}>
                 {tables.map((table) => (
-                    <div key={table.id} className="menu-card">
+                    <div key={table.id} className={card}>
                         {editingId === table.id ? (
                             <>
                                 <input
                                     value={editNumber}
                                     onChange={(e) => setEditNumber(e.target.value)}
-                                    style={{ width: "100%", padding: 8, marginBottom: 8 }}
+                                    className={`${inputClass} mb-2`}
                                 />
-                                <button onClick={() => saveEdit(table.id)}>บันทึก</button>
-                                <button onClick={() => setEditingId(null)} style={{ marginTop: 4, background: "var(--muted)" }}>
+                                <button className={btnDark} onClick={() => saveEdit(table.id)}>บันทึก</button>
+                                <button className="w-full mt-1 py-2 rounded-lg bg-muted text-white text-sm" onClick={() => setEditingId(null)}>
                                     ยกเลิก
                                 </button>
                             </>
                         ) : (
                             <>
-                                <h3>โต๊ะ {table.tableNumber}</h3>
-                                <span className={`status-tag ${table.status === "occupied" ? "status-pending" : "status-serving"}`}>
+                                <h3 className="my-0 mb-2 text-lg">โต๊ะ {table.tableNumber}</h3>
+                                <span className={statusTagClass(table.status === "occupied" ? "pending" : "serving")}>
                                     {table.status === "occupied" ? "มีลูกค้า" : "ว่าง"}
                                 </span>
-                                <p className="muted" style={{ fontSize: 12, marginTop: 8, wordBreak: "break-all" }}>
-                                    Token: {table.qrCodeToken}
-                                </p>
-                                <button onClick={() => startEdit(table)}>แก้ไขเลขโต๊ะ</button>
-                                <button onClick={() => handleRegenerateQr(table.id)} style={{ marginTop: 4, background: "var(--success)" }}>
-                                    สร้าง QR ใหม่
-                                </button>
-                                <button onClick={() => handleDelete(table.id)} style={{ marginTop: 4, background: "var(--accent)" }}>
-                                    ลบโต๊ะ
-                                </button>
+                                <p className={`${mutedClass} text-xs mt-2 break-all`}>Token: {table.qrCodeToken}</p>
+                                <button className={btnDark} onClick={() => startEdit(table)}>แก้ไขเลขโต๊ะ</button>
+                                <button className={btnSuccess} onClick={() => handleRegenerateQr(table.id)}>สร้าง QR ใหม่</button>
+                                <button className={btnAccent} onClick={() => handleDelete(table.id)}>ลบโต๊ะ</button>
                             </>
                         )}
                     </div>

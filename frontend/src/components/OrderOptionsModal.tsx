@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { MenuItem } from "../types";
+import { inputClass } from "../ui";
 
 interface OrderOptionsModalProps {
     menuItem: MenuItem;
@@ -44,24 +45,30 @@ export function OrderOptionsModal({ menuItem, onConfirm, onCancel }: OrderOption
     }
 
     return (
-        <div className="modal-overlay" onClick={onCancel}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h3>{menuItem.name}</h3>
+        <div
+            className="fixed inset-0 bg-ink/50 flex items-center justify-center p-5 z-[100]"
+            onClick={onCancel}
+        >
+            <div
+                className="bg-surface rounded-2xl p-6 max-w-[420px] w-full max-h-[80vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h3 className="mt-0 mb-4 text-lg font-semibold">{menuItem.name}</h3>
 
                 {menuItem.optionGroups.length === 0 && (
-                    <p className="muted">เมนูนี้ไม่มีตัวเลือกเพิ่มเติม</p>
+                    <p className="text-muted">เมนูนี้ไม่มีตัวเลือกเพิ่มเติม</p>
                 )}
 
                 {menuItem.optionGroups.map((group) => (
-                    <div key={group.id} className="option-group">
-                        <div className="option-group-title">
+                    <div key={group.id} className="mb-4">
+                        <div className="text-sm font-semibold mb-2 flex justify-between">
                             <span>{group.name}</span>
-                            {group.isRequired && <span className="option-group-required">* ต้องเลือก</span>}
+                            {group.isRequired && <span className="text-[11px] text-accent font-normal">* ต้องเลือก</span>}
                         </div>
                         {group.options.map((opt) => {
                             const isSelected = (selections[group.id] ?? []).includes(opt.id);
                             return (
-                                <label key={opt.id} className="option-choice">
+                                <label key={opt.id} className="flex items-center gap-2 py-2 border-b border-border last:border-none cursor-pointer">
                                     <input
                                         type={group.selectionType === "single" ? "radio" : "checkbox"}
                                         name={`group-${group.id}`}
@@ -74,7 +81,7 @@ export function OrderOptionsModal({ menuItem, onConfirm, onCancel }: OrderOption
                                     />
                                     <span>{opt.name}</span>
                                     {Number(opt.extraPrice) > 0 && (
-                                        <span className="option-choice-price">+฿{opt.extraPrice}</span>
+                                        <span className="ml-auto text-muted text-[13px]">+฿{opt.extraPrice}</span>
                                     )}
                                 </label>
                             );
@@ -82,27 +89,30 @@ export function OrderOptionsModal({ menuItem, onConfirm, onCancel }: OrderOption
                     </div>
                 ))}
 
-                <div className="option-group">
-                    <div className="option-group-title">
-                        <span>โน้ตเพิ่มเติม (ไม่บังคับ)</span>
-                    </div>
+                <div className="mb-4">
+                    <div className="text-sm font-semibold mb-2">โน้ตเพิ่มเติม (ไม่บังคับ)</div>
                     <input
                         placeholder="เช่น ไม่ใส่ผัก"
                         value={specialNotes}
                         onChange={(e) => setSpecialNotes(e.target.value)}
-                        style={{ width: "100%", padding: 8, border: "1px solid var(--border)", borderRadius: 6 }}
+                        className={inputClass}
                     />
                 </div>
 
-                <p style={{ fontWeight: 700, fontSize: 18, textAlign: "right", marginTop: 12 }}>
-                    รวม ฿{totalPrice}
-                </p>
+                <p className="font-bold text-lg text-right mt-3">รวม ฿{totalPrice}</p>
 
-                <div className="modal-actions">
-                    <button className="btn-cancel" onClick={onCancel}>
+                <div className="flex gap-2 mt-5">
+                    <button
+                        className="flex-1 py-3 rounded-lg border border-border bg-cream text-muted font-semibold cursor-pointer"
+                        onClick={onCancel}
+                    >
                         ยกเลิก
                     </button>
-                    <button className="btn-confirm" onClick={handleConfirm} disabled={!allRequiredSelected}>
+                    <button
+                        className="flex-1 py-3 rounded-lg bg-accent text-white font-semibold cursor-pointer disabled:bg-border disabled:cursor-not-allowed"
+                        onClick={handleConfirm}
+                        disabled={!allRequiredSelected}
+                    >
                         ยืนยันสั่ง
                     </button>
                 </div>

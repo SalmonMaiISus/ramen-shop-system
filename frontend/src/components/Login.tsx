@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import type { User } from "../types";
+import { loginCard, labelClass, inputClass, errorClass, btnAccent } from "../ui";
 
 interface LoginProps {
     onLoginSuccess: (user: User) => void;
@@ -16,7 +17,6 @@ export function Login({ onLoginSuccess }: LoginProps) {
         e.preventDefault();
         setError("");
         setLoading(true);
-
         try {
             const res = await api.post("/auth/login", { username, password });
             const { accessToken, refreshToken, user } = res.data.data;
@@ -31,22 +31,23 @@ export function Login({ onLoginSuccess }: LoginProps) {
     }
 
     return (
-        <form className="login-card" onSubmit={handleSubmit}>
-            <h2>เข้าสู่ระบบพนักงาน</h2>
-            <label>
+        <form className={loginCard} onSubmit={handleSubmit}>
+            <h2 className="m-0 text-lg font-semibold">เข้าสู่ระบบพนักงาน</h2>
+            <label className={labelClass}>
                 Username
-                <input value={username} onChange={(e) => setUsername(e.target.value)} />
+                <input className={inputClass} value={username} onChange={(e) => setUsername(e.target.value)} />
             </label>
-            <label>
+            <label className={labelClass}>
                 Password
                 <input
                     type="password"
+                    className={inputClass}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />
             </label>
-            {error && <p className="error-text">{error}</p>}
-            <button type="submit" disabled={loading}>
+            {error && <p className={errorClass}>{error}</p>}
+            <button type="submit" className={btnAccent} disabled={loading}>
                 {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
             </button>
         </form>

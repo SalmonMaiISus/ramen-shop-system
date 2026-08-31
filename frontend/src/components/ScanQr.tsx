@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api } from "../api/client";
+import { loginCard, labelClass, inputClass, errorClass, btnAccent, mutedClass } from "../ui";
 
 interface ScanQrProps {
     onScanned: (sessionToken: string, tableNumber: string) => void;
@@ -21,17 +22,15 @@ export function ScanQr({ onScanned }: ScanQrProps) {
     }
 
     return (
-        <div className="login-card">
-            <h2>จำลองการสแกน QR</h2>
-            <p className="muted" style={{ fontSize: 13 }}>
-                (ในระบบจริง ค่านี้จะมาจากกล้องสแกน QR อัตโนมัติ)
-            </p>
-            <label>
+        <div className={loginCard}>
+            <h2 className="m-0 text-lg font-semibold">จำลองการสแกน QR</h2>
+            <p className={`${mutedClass} text-xs`}>(ในระบบจริง ค่านี้จะมาจากกล้องสแกน QR อัตโนมัติ)</p>
+            <label className={labelClass}>
                 QR Code Token
-                <input value={qrToken} onChange={(e) => setQrToken(e.target.value)} />
+                <input className={inputClass} value={qrToken} onChange={(e) => setQrToken(e.target.value)} />
             </label>
-            {error && <p className="error-text">{error}</p>}
-            <button onClick={handleScan}>เข้าสู่โต๊ะ</button>
+            { error && <p className={errorClass}>{error}</p> }
+            <button className={btnAccent} onClick={handleScan}>เข้าสู่โต๊ะ</button>
         </div>
     );
 }

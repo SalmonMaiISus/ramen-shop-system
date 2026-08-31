@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
+import { card, cardGrid, mutedClass, priceClass, statusTagClass, inputClass, btnDark } from "../ui";
 
 interface SessionData {
     id: number;
@@ -31,9 +32,7 @@ export function SplitBill() {
     }
 
     function toggleItem(id: number) {
-        setSelectedItemIds((prev) =>
-            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-        );
+        setSelectedItemIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
     }
 
     async function handleCreateSplitBill() {
@@ -56,9 +55,9 @@ export function SplitBill() {
 
     return (
         <div>
-            <h2>แยกบิล (Split Bill)</h2>
+            <h2 className="text-lg font-semibold mb-3">แยกบิล (Split Bill)</h2>
 
-            <label className="muted" style={{ display: "block", marginBottom: 12 }}>
+            <label className={`${mutedClass} block mb-3`}>
                 เลือกโต๊ะ
                 <select
                     value={selectedSessionId}
@@ -67,7 +66,7 @@ export function SplitBill() {
                         setSelectedSessionId(id);
                         if (id) loadItems(id);
                     }}
-                    style={{ display: "block", padding: 8, marginTop: 6, width: 200 }}
+                    className={`${inputClass} block mt-1.5 w-52`}
                 >
                     <option value="">-- เลือกโต๊ะ --</option>
                     {sessions.map((s) => (
@@ -80,37 +79,33 @@ export function SplitBill() {
 
             {selectedSessionId && (
                 <>
-                    <h3>เลือกจานที่จะแยกจ่าย</h3>
-                    {items.length === 0 && <p className="muted">ไม่มีจานที่ยังไม่ได้จัดบิล</p>}
-                    <div className="card-grid">
+                    <h3 className="text-base font-semibold mb-2">เลือกจานที่จะแยกจ่าย</h3>
+                    {items.length === 0 && <p className={mutedClass}>ไม่มีจานที่ยังไม่ได้จัดบิล</p>}
+                    <div className={cardGrid}>
                         {items.map((item) => (
                             <div
                                 key={item.id}
-                                className="menu-card"
-                                style={{
-                                    cursor: "pointer",
-                                    borderColor: selectedItemIds.includes(item.id) ? "var(--accent)" : "var(--border)",
-                                    borderWidth: selectedItemIds.includes(item.id) ? 2 : 1,
-                                }}
+                                className={`${card} cursor-pointer ${selectedItemIds.includes(item.id) ? "border-2 border-accent" : ""
+                                    }`}
                                 onClick={() => toggleItem(item.id)}
                             >
-                                <h3>{item.menuItemNameSnapshot}</h3>
-                                <p className="price">฿{item.unitPriceSnapshot} × {item.quantity}</p>
+                                <h3 className="my-2 mb-1 text-lg">{item.menuItemNameSnapshot}</h3>
+                                <p className={priceClass}>฿{item.unitPriceSnapshot} × {item.quantity}</p>
                                 {selectedItemIds.includes(item.id) && (
-                                    <span className="status-tag status-serving">เลือกแล้ว</span>
+                                    <span className={statusTagClass("serving")}>เลือกแล้ว</span>
                                 )}
                             </div>
                         ))}
                     </div>
 
                     {selectedItemIds.length > 0 && (
-                        <div style={{ marginTop: 16 }}>
+                        <div className="mt-4">
                             <p>ยอดรวมที่เลือก: <strong>฿{selectedTotal}</strong></p>
-                            <button onClick={handleCreateSplitBill}>สร้างบิลย่อย</button>
+                            <button className={`${btnDark} max-w-xs`} onClick={handleCreateSplitBill}>สร้างบิลย่อย</button>
                         </div>
                     )}
 
-                    {message && <p className="muted" style={{ marginTop: 12 }}>{message}</p>}
+                    {message && <p className={`${mutedClass} mt-3`}>{message}</p>}
                 </>
             )}
         </div>

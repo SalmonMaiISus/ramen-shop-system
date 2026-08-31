@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import type { MenuItem } from "../types";
+import { card, cardGrid, categoryTag, priceClass, mutedClass, tagBase } from "../ui";
 
 export function MenuList() {
     const [items, setItems] = useState<MenuItem[]>([]);
@@ -14,21 +15,23 @@ export function MenuList() {
             .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <p className="muted">กำลังโหลดเมนู...</p>;
-    if (items.length === 0) return <p className="muted">ยังไม่มีเมนู</p>;
+    if (loading) return <p className={mutedClass}>กำลังโหลดเมนู...</p>;
+    if (items.length === 0) return <p className={mutedClass}>ยังไม่มีเมนู</p>;
 
     return (
-        <div className="card-grid">
+        <div className={cardGrid}>
             {items.map((item) => (
-                <div key={item.id} className="menu-card">
-                    <div className="menu-card-header">
-                        <span className="category-tag">{item.category.name}</span>
-                        {!item.isAvailable && <span className="status-tag sold-out">หมด</span>}
+                <div key={item.id} className={card}>
+                    <div className="flex justify-between items-center">
+                        <span className={categoryTag}>{item.category.name}</span>
+                        {!item.isAvailable && (
+                            <span className={`${tagBase} bg-accentSoft text-accent`}>หมด</span>
+                        )}
                     </div>
-                    <h3>{item.name}</h3>
-                    <p className="price">฿{item.basePrice}</p>
+                    <h3 className="my-2 mb-3 text-lg">{item.name}</h3>
+                    <p className={priceClass}>฿{item.basePrice}</p>
                 </div>
             ))}
-        </div>
+        </div >
     );
 }
