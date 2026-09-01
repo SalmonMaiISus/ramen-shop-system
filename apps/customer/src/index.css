@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark));
+
+/* Light mode */
+@theme {
+  --color-canvas: #fff7f2;
+  --color-surface: #ffffff;
+  --color-ink: #2b1a12;
+  --color-muted: #9a8478;
+  --color-border: #f0e2d8;
+  --color-accent: #ea5a1f;
+  --color-accentSoft: #ffe4d1;
+  --color-success: #2f9e44;
+  --color-successSoft: #e3f8e6;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --color-canvas: #171310;
+  --color-surface: #241c16;
+  --color-ink: #f5ece5;
+  --color-muted: #b7a89c;
+  --color-border: #3a2f27;
+  --color-accent: #ff7a3d;
+  --color-accentSoft: #3a2417;
+  --color-success: #5fce6f;
+  --color-successSoft: #163a1c;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-2xl p-3 shadow-sm shadow-ink/[0.04];
+  }
+
+  .pill {
+    @apply px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-150;
+  }
+
+  .pill-active {
+    @apply bg-accent text-white;
+  }
+
+  .pill-inactive {
+    @apply bg-surface border border-border text-muted hover:border-accent/40;
+  }
+
+  .icon-btn {
+    @apply w-9 h-9 flex items-center justify-center rounded-full bg-surface border border-border text-ink transition-colors duration-150 hover:border-accent/40;
+  }
+
+  .input {
+    @apply w-full bg-surface border border-border rounded-full py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-colors duration-150;
+  }
+}
