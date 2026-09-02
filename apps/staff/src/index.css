@@ -1,0 +1,84 @@
+@import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-canvas: #fff7f2;
+  --color-surface: #ffffff;
+  --color-ink: #2b1a12;
+  --color-muted: #9a8478;
+  --color-border: #f0e2d8;
+  --color-accent: #ea5a1f;
+  --color-accentSoft: #ffe4d1;
+  --color-success: #2f9e44;
+  --color-successSoft: #e3f8e6;
+  --color-danger: #dc2626;
+  --color-dangerSoft: #fee2e2;
+}
+
+.dark {
+  --color-canvas: #171310;
+  --color-surface: #241c16;
+  --color-ink: #f5ece5;
+  --color-muted: #b7a89c;
+  --color-border: #3a2f27;
+  --color-accent: #ff7a3d;
+  --color-accentSoft: #3a2417;
+  --color-success: #5fce6f;
+  --color-successSoft: #163a1c;
+  --color-danger: #f87171;
+  --color-dangerSoft: #3a1616;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-xl p-4 shadow-sm shadow-ink/[0.03];
+  }
+
+  .card-grid {
+    @apply grid gap-3;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-semibold py-2.5 px-4
+      bg-accent text-white cursor-pointer transition-colors duration-150 hover:bg-accent/90
+      disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium py-2.5 px-4
+      bg-surface border border-border text-ink cursor-pointer transition-colors duration-150
+      hover:border-accent/40 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium py-2.5 px-4
+      bg-danger text-white cursor-pointer transition-colors duration-150 hover:bg-danger/90;
+  }
+
+  .input {
+    @apply w-full bg-surface border border-border rounded-lg py-2.5 px-3.5 text-sm text-ink
+      focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-colors duration-150;
+  }
+
+  .field {
+    @apply flex flex-col gap-1.5 text-xs text-muted;
+  }
+
+  .icon-btn {
+    @apply w-9 h-9 flex items-center justify-center rounded-lg bg-surface border border-border text-ink
+      transition-colors duration-150 hover:border-accent/40;
+  }
+
+  .badge {
+    @apply text-xs px-2.5 py-1 rounded-full font-semibold inline-block;
+  }
+}

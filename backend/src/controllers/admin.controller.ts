@@ -14,6 +14,8 @@ import {
     updateCategory,
     deleteCategory,
     CategoryNotFoundError,
+    updateOptionGroup,
+    updateOption, 
 } from "../services/menu.service";
 import { 
     createMenuItemSchema, 
@@ -23,6 +25,8 @@ import {
     createOptionSchema,
     createCategorySchema,
     updateCategorySchema, 
+    updateOptionGroupSchema,
+    updateOptionSchema, 
 } from "../utils/validators";
 
 export async function createMenuItemController(req: Request, res: Response) {
@@ -194,4 +198,28 @@ export async function deleteCategoryController(req: Request, res: Response) {
             error: { code: "CATEGORY_IN_USE", message: error.message ?? "Cannot delete this category" },
         });
     }
+}
+
+export async function updateOptionGroupController(req: Request, res: Response) {
+    const parsed = updateOptionGroupSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(422).json({
+            success: false,
+            error: { code: "VALIDATION_ERROR", message: "Invalid option group data" },
+        });
+    }
+    const group = await updateOptionGroup(Number(req.params.id), parsed.data);
+    res.json({ success: true, data: group });
+}
+
+export async function updateOptionController(req: Request, res: Response) {
+    const parsed = updateOptionSchema.safeParse(req.body);
+    if (!parsed.success) {
+        return res.status(422).json({
+            success: false,
+            error: { code: "VALIDATION_ERROR", message: "Invalid option data" },
+        });
+    }
+    const option = await updateOption(Number(req.params.id), parsed.data);
+    res.json({ success: true, data: option });
 }

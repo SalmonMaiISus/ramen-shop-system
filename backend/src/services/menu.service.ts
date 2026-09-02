@@ -128,3 +128,14 @@ export async function deleteCategory(categoryId: number) {
     }
     await prisma.menuCategory.delete({ where: { id: categoryId } });
 }
+
+export async function updateOptionGroup(
+    id: number,
+    input: { name?: string; selectionType?: "single" | "multiple"; isRequired?: boolean }
+) {
+    return prisma.optionGroup.update({ where: { id }, data: input });
+}
+
+export async function updateOption(id: number, input: { name?: string; extraPrice?: number }) {
+    return prisma.option.update({ where: { id }, data: input });
+}

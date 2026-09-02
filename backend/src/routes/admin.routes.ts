@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../middlewares/auth.middleware";
+import { upload } from "../middlewares/upload.middleware";
+import { uploadImageController } from "../controllers/upload.controller";
 import {
     createMenuItemController,
     getCategoriesController,
@@ -13,6 +15,8 @@ import {
     createCategoryController,
     updateCategoryController,
     deleteCategoryController,
+    updateOptionController,
+    updateOptionGroupController, 
 } from "../controllers/admin.controller";
 import {
     getDailySalesController,
@@ -47,9 +51,12 @@ router.patch("/menu-items/:id/availability", toggleAvailabilityController);
 router.patch("/menu-items/:id", updateMenuItemController);
 router.delete("/menu-items/:id", deleteMenuItemController);
 router.post("/option-groups", createOptionGroupController);
+router.patch("/option-groups/:id", updateOptionGroupController);
 router.delete("/option-groups/:id", deleteOptionGroupController);
 router.post("/options", createOptionController);
+router.patch("/options/:id", updateOptionController);
 router.delete("/options/:id", deleteOptionController);
+router.post("/upload", upload.single("image"), uploadImageController);
 
 // Reports
 router.get("/reports/sales", getDailySalesController);

@@ -94,3 +94,14 @@ export const updateUserSchema = z.object({
     fullName: z.string().min(1).optional(),
     role: z.enum(["chef", "staff", "admin"]).optional(),
 });
+
+export const updateOptionGroupSchema = z.object({
+    name: z.string().min(1).optional(),
+    selectionType: z.enum(["single", "multiple"]).optional(),
+    isRequired: z.boolean().optional(),
+});
+
+export const updateOptionSchema = z.object({
+    name: z.string().min(1).optional(),
+    extraPrice: z.number().min(0).optional(),
+});
