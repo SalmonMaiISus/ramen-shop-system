@@ -7,6 +7,7 @@ export function uploadImageController(req: Request, res: Response) {
             error: { code: "NO_FILE", message: "No file uploaded" },
         });
     }
-    const imageUrl = `http://localhost:4000/uploads/${req.file.filename}`;
-        res.status(201).json({ success: true, data: { imageUrl } });
+
+    const imageUrl = (req.file as any).path;
+    res.status(201).json({ success: true, data: { imageUrl } });
 }

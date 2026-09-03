@@ -30,7 +30,6 @@ initSocket(io);
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
-app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.get("/health", (_req,res) => {
     res.json({ success: true, data: { status: "ok" } });
