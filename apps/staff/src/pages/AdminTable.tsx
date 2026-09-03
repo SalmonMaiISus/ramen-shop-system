@@ -36,7 +36,7 @@ export function AdminTables() {
         load();
     }
 
-    const scanUrl = (token: string) => `http://localhost:5174/?token=${token}`;
+    const scanUrl = (token: string) => `${import.meta.env.VITE_CUSTOMER_APP_URL}/?token=${token}`;
 
     return (
         <div>

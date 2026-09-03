@@ -18,7 +18,10 @@ dotenv.config();
 
 const app = express();
 const httpServer = createServer(app);
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"];
+const allowedOrigins = [
+    process.env.FRONTEND_CUSTOMER_URL ?? "http://localhost:5173/",
+    process.env.FRONTEND_STAFF_URL ?? "http://localhost:5175/",
+];
 
 const io = new Server(httpServer, {
     cors: { origin: allowedOrigins, credentials: true },
