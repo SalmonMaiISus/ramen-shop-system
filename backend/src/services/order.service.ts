@@ -23,10 +23,10 @@ export async function createOrderItems(sessionId: number, items: CreateOrderItem
         });
 
         if (!menuItem) {
-            throw new MenuItemNotFoundError(`Menu item ${item.menuItemId} not found`);
+            throw new MenuItemNotFoundError(`Menu item ${ item.menuItemId } not found`);
         }
         if (!menuItem.isAvailable) {
-            throw new MenuItemUnavailableError(`${menuItem.name} is currently unavailable`);
+            throw new MenuItemUnavailableError(`${ menuItem.name } is currently unavailable`);
         }
 
         const allOptionsOfMenuItem = menuItem.optionGroups.flatMap((g) => g.options);
@@ -34,27 +34,29 @@ export async function createOrderItems(sessionId: number, items: CreateOrderItem
             item.selectedOptionIds.includes(opt.id)
         );
 
-        const orderItem = await prisma.orderItem.create({
-            data: {
-                sessionId,
-                menuItemId: menuItem.id,
-                menuItemNameSnapshot: menuItem.name,
-                unitPriceSnapshot: menuItem.basePrice,
-                quantity: item.quantity,
-                ...(item.specialNotes !== undefined ? { specialNotes: item.specialNotes } : {}),
-                status: "pending",
-                selectedOptions: {
-                    create: selectedOptions.map((opt) => ({
-                        optionId: opt.id,
-                        optionNameSnapshot: opt.name,
-                        extraPriceSnapshot: opt.extraPrice,
-                    })),
+        for (let i = 0; i < item.quantity; i++) {
+            const orderItem = await prisma.orderItem.create({
+                data: {
+                    sessionId,
+                    menuItemId: menuItem.id,
+                    menuItemNameSnapshot: menuItem.name,
+                    unitPriceSnapshot: menuItem.basePrice,
+                    quantity: 1,
+                    specialNotes: item.specialNotes,
+                    status: "pending",
+                    selectedOptions: {
+                        create: selectedOptions.map((opt) => ({
+                            optionId: opt.id,
+                            optionNameSnapshot: opt.name,
+                            extraPriceSnapshot: opt.extraPrice,
+                        })),
+                    },
                 },
-            },
-            include: { selectedOptions: true },
-        });
+                include: { selectedOptions: true },
+            });
 
-        results.push(orderItem);
+            results.push(orderItem);
+        }
     }
 
     emitNewOrderItem();
