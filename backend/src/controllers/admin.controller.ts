@@ -159,7 +159,7 @@ export async function createCategoryController(req: Request, res: Response) {
             error: { code: "VALIDATION_ERROR", message: "Category name is required" },
         });
     }
-    const category = await createCategory(parsed.data.name, parsed.data.displayOrder);
+    const category = await createCategory(parsed.data.name, parsed.data.displayOrder ?? 0);
     res.status(201).json({ success: true, data: category });
 }
 
